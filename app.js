@@ -477,6 +477,12 @@ document.addEventListener('keydown', (event) => {
         updateSelection(items);
     } else if (event.key === 'Enter') {
         event.preventDefault();
+        if (selectedIndex === -1) {
+            selectedIndex = 0;
+            if (!items[selectedIndex]) {
+                selectedIndex = -1;
+            };
+        }
         if (selectedIndex !== -1 && items[selectedIndex]) {
             const snippetId = items[selectedIndex].dataset.id;
             openSnippet(snippetId);
