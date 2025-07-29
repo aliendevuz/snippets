@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -18,6 +19,20 @@
                     fontFamily: {
                         'sans': ['Inter', 'system-ui', 'sans-serif'],
                         'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        'slate-900': '#0F172A',
+                        'slate-800': '#1E293B',
+                        'slate-700': '#334155',
+                        'slate-600': '#475569',
+                        'slate-500': '#64748B',
+                        'slate-400': '#94A3B8',
+                        'slate-300': '#CBD5E1',
+                        'blue-600': '#2563EB',
+                        'blue-700': '#1D4ED8',
+                        'purple-600': '#9333EA',
+                        'purple-700': '#7E22CE',
+                        'green-400': '#4ADE80',
                     }
                 }
             }
@@ -40,6 +55,53 @@
         }
         pre:hover .copy-btn {
             opacity: 1;
+        }
+        /* Custom styles for highlighted blocks */
+        .highlighted-block {
+            background-color: rgba(255, 234, 167, 0.15); /* Light yellow with transparency */
+            border-left: 4px solid #f1c40f; /* Yellow border */
+            padding: 0.75rem;
+            margin: 8px 0;
+            position: relative;
+            border-radius: 4px;
+        }
+        .highlighted-block pre {
+            background: transparent !important; /* Make background transparent to show parent's background */
+            padding: 0 !important; /* Remove padding from inner pre */
+            border-radius: 0 !important;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .highlighted-block code {
+            white-space: pre-wrap;
+            display: block;
+        }
+        .highlighted-block .copy-btn {
+            top: 8px;
+            right: 8px;
+            opacity: 1; /* Always visible for highlighted blocks */
+            background: #f1c40f; /* Yellow background */
+            color: #2d3436; /* Dark text */
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+        .highlighted-block .copy-btn:hover {
+            background: #e67e22; /* Orange on hover */
+            color: #fff;
+            transform: translateY(-1px);
+        }
+        .highlighted-block .copy-btn:active {
+            transform: translateY(0);
+        }
+        .prose pre {
+            padding: 1.5rem; /* Default padding for non-highlighted blocks */
         }
     </style>
 </head>
@@ -139,7 +201,7 @@
     </main>
 
     <script>
-        // Snippet metadata
+        // Snippet metadata (for demonstration, in a real app this would be fetched)
         const snippetMeta = {
             'room': {
                 title: 'Room Database Setup',
@@ -155,7 +217,7 @@
             },
             'ksp': {
                 title: 'Kotlin Symbol Processing',
-                description: 'KSP setup and configuration for Kotlin annotation processing',
+                description: 'KSP setup and configuration for Kotlin annotation processing with multi-highlight',
                 keywords: ['ksp', 'kotlin', 'annotation', 'processing', 'compiler'],
                 category: 'Kotlin'
             }
@@ -166,7 +228,7 @@
             return urlParams.get(name);
         }
 
-        const snippetId = getQueryParam('snippet');
+        const snippetId = getQueryParam('snippet') || 'ksp'; // Default to 'ksp' for demonstration
         const contentDiv = document.getElementById('content');
         const titleEl = document.getElementById('title');
         const descriptionEl = document.getElementById('description');
@@ -176,7 +238,7 @@
         const editBtn = document.getElementById('edit-btn');
         const shareBtn = document.getElementById('share-btn');
 
-        // Load snippet metadata
+        // Load and display snippet metadata
         async function loadSnippetMeta(snippetId) {
             // Check if it's a custom snippet
             if (snippetId && snippetId.startsWith('custom_')) {
@@ -188,17 +250,19 @@
             }
             
             // Default snippets
-            return snippetMeta[snippetId] || null;
-        }
-
-        // Load and display snippet metadata
-        loadSnippetMeta(snippetId).then(meta => {
+            const meta = snippetMeta[snippetId] || null;
             if (meta) {
                 titleEl.textContent = meta.title;
                 descriptionEl.textContent = meta.description;
                 categoryBadge.textContent = meta.isCustom ? 'Custom' : meta.category;
                 categoryBadge.className = `text-xs px-3 py-1 ${meta.isCustom ? 'bg-purple-700' : 'bg-slate-700'} rounded-full text-slate-300`;
                 
+                keywordsEl.innerHTML = meta.keywords.map(keyword => 
+                    `<span class="text-xs px-3 py-1 bg-slate-700/50 rounded-full text-slate-300">${keyword}</span>`
+                ).join('');
+                
+                document.title = `${meta.title} | DevSnippets`;
+
                 // Show edit button for custom snippets
                 if (meta.isCustom) {
                     editBtn.classList.remove('hidden');
@@ -206,61 +270,113 @@
                         window.location.href = `../editor/?snippet=${snippetId}`;
                     };
                 }
-                
-                // Render keywords
-                keywordsEl.innerHTML = meta.keywords.map(keyword => 
-                    `<span class="text-xs px-3 py-1 bg-slate-700/50 rounded-full text-slate-300">${keyword}</span>`
-                ).join('');
-                
-                // Update page title
-                document.title = `${meta.title} | DevSnippets`;
             }
-        });
+        }
 
-        // Load snippet content
-        async function loadSnippetContent() {
-            try {
-                let content;
-                
-                // Check if it's a custom snippet
-                if (snippetId && snippetId.startsWith('custom_')) {
-                    content = localStorage.getItem(`devsnippets_content_${snippetId}`);
-                    if (!content) {
-                        throw new Error('Custom snippet content not found');
+        // Function to render markdown with ~~~ highlighting
+        function renderMarkdownWithMultiHighlight(markdownContent, targetElement) {
+            const rawHtml = marked.parse(markdownContent);
+            targetElement.innerHTML = rawHtml;
+
+            targetElement.querySelectorAll("pre code").forEach((codeBlock) => {
+                const originalText = codeBlock.textContent;
+                const lines = originalText.split("\n");
+                const blockRanges = [];
+                let currentBlockLines = [];
+                let insideBlock = false;
+                let startIndex = null;
+
+                // Step 1: Identify ~~~ block ranges
+                lines.forEach((line, index) => {
+                    if (line.trim() === "~~~") {
+                        if (insideBlock) {
+                            blockRanges.push({ start: startIndex, end: index, lines: [...currentBlockLines] });
+                            currentBlockLines = [];
+                            insideBlock = false;
+                        } else {
+                            insideBlock = true;
+                            startIndex = index + 1;
+                        }
+                    } else if (insideBlock) {
+                        currentBlockLines.push(line);
                     }
-                } else {
-                    // Load from markdown files
-                    const response = await fetch(`../snippets/${snippetId}.md`);
-                    if (!response.ok) throw new Error('Snippet not found');
-                    content = await response.text();
+                });
+
+                // Step 2: Apply Highlight.js to the entire code block (without ~~~)
+                const lang = codeBlock.className.replace("language-", "") || "text";
+                const tempCodeElement = document.createElement("code");
+                tempCodeElement.className = `language-${lang}`;
+                tempCodeElement.textContent = originalText.replace(/~~~(\n|$)/g, "");
+                hljs.highlightElement(tempCodeElement);
+                const highlightedFullCodeLines = tempCodeElement.innerHTML.split("\n");
+
+                // Step 3: Reconstruct HTML with highlighted blocks
+                let finalHtmlParts = [];
+                let currentLineIndex = 0;
+                let highlightedLineIndex = 0;
+
+                blockRanges.forEach((block) => {
+                    // Add lines before the block
+                    while (currentLineIndex < block.start && currentLineIndex < lines.length) {
+                        if (lines[currentLineIndex].trim() !== "~~~" && highlightedLineIndex < highlightedFullCodeLines.length) {
+                            finalHtmlParts.push(highlightedFullCodeLines[highlightedLineIndex]);
+                            highlightedLineIndex++;
+                        } else if (lines[currentLineIndex].trim() === "") {
+                            finalHtmlParts.push(""); // Preserve empty lines
+                        }
+                        currentLineIndex++;
+                    }
+
+                    // Add the highlighted block
+                    const blockText = block.lines.join("\n");
+                    if (blockText) {
+                        const blockTempCode = document.createElement("code");
+                        blockTempCode.className = `language-${lang}`;
+                        blockTempCode.textContent = blockText;
+                        hljs.highlightElement(blockTempCode);
+                        finalHtmlParts.push(
+                            `<div class="highlighted-block"><pre><code class="language-${lang}">${blockTempCode.innerHTML}</code></pre></div>`
+                        );
+                    }
+                    currentLineIndex = block.end + 1;
+                    highlightedLineIndex += block.lines.length;
+                });
+
+                // Add remaining lines after the last block
+                while (currentLineIndex < lines.length && highlightedLineIndex < highlightedFullCodeLines.length) {
+                    if (lines[currentLineIndex].trim() !== "~~~") {
+                        finalHtmlParts.push(highlightedFullCodeLines[highlightedLineIndex]);
+                        highlightedLineIndex++;
+                    } else if (lines[currentLineIndex].trim() === "") {
+                        finalHtmlParts.push(""); // Preserve empty lines
+                    }
+                    currentLineIndex++;
                 }
-                
-                contentDiv.innerHTML = marked.parse(content);
-                
-                // Apply syntax highlighting and add copy buttons
-                document.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                    
-                    // Add copy button to each code block
-                    const copyBtn = document.createElement('button');
-                    copyBtn.className = 'copy-btn px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-medium transition-all duration-200 flex items-center space-x-1';
-                    copyBtn.innerHTML = `
+
+                // Step 4: Set the final HTML
+                codeBlock.innerHTML = finalHtmlParts.join("\n");
+
+                // Step 5: Add copy buttons to highlighted blocks
+                codeBlock.querySelectorAll(".highlighted-block").forEach((block) => {
+                    const innerCode = block.querySelector("code");
+                    const btn = document.createElement("button");
+                    btn.className = "copy-btn px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-medium transition-all duration-200 flex items-center space-x-1";
+                    btn.innerHTML = `
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                         </svg>
                         <span>Copy</span>
                     `;
-                    
-                    copyBtn.onclick = () => {
-                        navigator.clipboard.writeText(block.textContent).then(() => {
-                            copyBtn.innerHTML = `
+                    btn.onclick = () => {
+                        navigator.clipboard.writeText(innerCode.textContent.trim()).then(() => {
+                            btn.innerHTML = `
                                 <svg class="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
                                 <span class="text-green-400">Copied!</span>
                             `;
                             setTimeout(() => {
-                                copyBtn.innerHTML = `
+                                btn.innerHTML = `
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                                     </svg>
@@ -269,9 +385,30 @@
                             }, 2000);
                         });
                     };
-                    
-                    block.parentElement.appendChild(copyBtn);
+                    block.appendChild(btn);
                 });
+            });
+        }
+
+        // Load snippet content
+        async function loadSnippetContent() {
+            try {
+                let content;
+            
+                // Check if it's a custom snippet
+                if (snippetId && snippetId.startsWith('custom_')) {
+                    content = localStorage.getItem(`devsnippets_content_${snippetId}`);
+                    if (!content) {
+                        throw new Error('Custom snippet content not found');
+                    }
+                } else {
+                    // Load from markdown files
+                    const response = await fetch(`../snippets/${snippetId}.md`); // Updated path here
+                    if (!response.ok) throw new Error('Snippet not found');
+                    content = await response.text();
+                }
+                
+                renderMarkdownWithMultiHighlight(content, contentDiv);
                 
             } catch (error) {
                 contentDiv.innerHTML = `
@@ -298,7 +435,6 @@
             const allCode = Array.from(allCodeBlocks).map(block => block.textContent).join('\n\n');
             
             if (allCode.trim() === '') {
-                // If no code blocks, copy all text content
                 const textContent = contentDiv.textContent || contentDiv.innerText;
                 navigator.clipboard.writeText(textContent);
             } else {
@@ -342,7 +478,8 @@
             });
         };
 
-        // Load the content
+        // Initial load
+        loadSnippetMeta(snippetId);
         loadSnippetContent();
     </script>
 </body>
