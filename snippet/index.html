@@ -1,64 +1,268 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Snippet</title>
-    <link rel="stylesheet" href="style.css" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snippet | DevSnippets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
-    />
-  </head>
-  <body>
-    <main>
-      <h1 id="title">Loading...</h1>
-      <div id="content"></div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hljs {
+            background: rgb(15 23 42) !important;
+            border-radius: 0.5rem;
+        }
+        pre {
+            position: relative;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        pre:hover .copy-btn {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white min-h-screen font-sans">
+    <!-- Header -->
+    <header class="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="../" class="flex items-center space-x-2 text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        <span>Back to Search</span>
+                    </a>
+                    <div class="w-px h-6 bg-slate-700"></div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-md flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                        </div>
+                        <span class="font-medium">DevSnippets</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span id="category-badge" class="text-xs px-3 py-1 bg-slate-700 rounded-full text-slate-300"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-6 py-8">
+        <!-- Title Section -->
+        <div class="mb-8">
+            <h1 id="title" class="text-3xl font-bold mb-3 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Loading...
+            </h1>
+            <p id="description" class="text-slate-400 text-lg"></p>
+            <div id="keywords" class="flex flex-wrap gap-2 mt-4"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="bg-slate-800/30 border border-slate-700/50 rounded-xl overflow-hidden">
+            <div class="border-b border-slate-700/50 px-6 py-4 bg-slate-800/50">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-semibold flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29.82-5.877 2.172M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.875a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0z"></path>
+                        </svg>
+                        Code Snippet
+                    </h2>
+                    <button id="copy-all-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Copy All</span>
+                    </button>
+                </div>
+            </div>
+            <div id="content" class="p-6 prose prose-invert max-w-none">
+                <div class="flex items-center justify-center py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span class="ml-3 text-slate-400">Loading snippet...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8 flex flex-wrap gap-4">
+            <button onclick="window.history.back()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>Go Back</span>
+            </button>
+            <a href="../" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <span>New Search</span>
+            </a>
+        </div>
     </main>
 
     <script>
-      function getQueryParam(name) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name);
-      }
+        // Snippet metadata
+        const snippetMeta = {
+            'room': {
+                title: 'Room Database Setup',
+                description: 'Complete Android Room database configuration with Entity, DAO, and Database classes',
+                keywords: ['room', 'android', 'database', 'dao', 'entity', 'kotlin'],
+                category: 'Android'
+            },
+            'jwt': {
+                title: 'JWT Secret Generator',
+                description: 'Generate secure JWT secrets using Node.js with crypto module',
+                keywords: ['jwt', 'node', 'auth', 'token', 'security', 'crypto'],
+                category: 'Security'
+            },
+            'ksp': {
+                title: 'Kotlin Symbol Processing',
+                description: 'KSP setup and configuration for Kotlin annotation processing',
+                keywords: ['ksp', 'kotlin', 'annotation', 'processing', 'compiler'],
+                category: 'Kotlin'
+            }
+        };
 
-      const snippetId = getQueryParam("snippet");
-      const contentDiv = document.getElementById("content");
-      const titleEl = document.getElementById("title");
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
 
-      fetch("index.json")
-        .then((res) => res.json())
-        .then((index) => {
-          const snippetMeta = index.find((s) => s.id === snippetId);
-          if (snippetMeta) {
-            titleEl.textContent = snippetMeta.title;
-          }
-        });
+        const snippetId = getQueryParam('snippet');
+        const contentDiv = document.getElementById('content');
+        const titleEl = document.getElementById('title');
+        const descriptionEl = document.getElementById('description');
+        const keywordsEl = document.getElementById('keywords');
+        const categoryBadge = document.getElementById('category-badge');
+        const copyAllBtn = document.getElementById('copy-all-btn');
 
-      fetch(`../snippets/${snippetId}.md`)
-        .then((res) => res.text())
-        .then((md) => {
-          contentDiv.innerHTML = marked.parse(md);
-          document.querySelectorAll("pre code").forEach((block) => {
-            hljs.highlightElement(block); // <-- highlighting shu yerda
-          });
+        // Load snippet metadata
+        if (snippetId && snippetMeta[snippetId]) {
+            const meta = snippetMeta[snippetId];
+            titleEl.textContent = meta.title;
+            descriptionEl.textContent = meta.description;
+            categoryBadge.textContent = meta.category;
+            
+            // Render keywords
+            keywordsEl.innerHTML = meta.keywords.map(keyword => 
+                `<span class="text-xs px-3 py-1 bg-slate-700/50 rounded-full text-slate-300">${keyword}</span>`
+            ).join('');
+            
+            // Update page title
+            document.title = `${meta.title} | DevSnippets`;
+        }
 
-          // Copy tugmasi
-          document.querySelectorAll("pre code").forEach((block) => {
-            const button = document.createElement("button");
-            button.textContent = "Copy";
-            button.style.marginTop = "5px";
-            button.onclick = () => {
-              navigator.clipboard.writeText(block.innerText);
-              button.textContent = "Copied!";
-              setTimeout(() => (button.textContent = "Copy"), 1000);
-            };
-            block.parentElement.appendChild(button);
-          });
-        });
+        // Load snippet content
+        fetch(`../snippets/${snippetId}.md`)
+            .then(res => {
+                if (!res.ok) throw new Error('Snippet not found');
+                return res.text();
+            })
+            .then(md => {
+                contentDiv.innerHTML = marked.parse(md);
+                
+                // Apply syntax highlighting
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                    
+                    // Add copy button to each code block
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'copy-btn px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs font-medium transition-all duration-200 flex items-center space-x-1';
+                    copyBtn.innerHTML = `
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Copy</span>
+                    `;
+                    
+                    copyBtn.onclick = () => {
+                        navigator.clipboard.writeText(block.textContent).then(() => {
+                            copyBtn.innerHTML = `
+                                <svg class="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="text-green-400">Copied!</span>
+                            `;
+                            setTimeout(() => {
+                                copyBtn.innerHTML = `
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span>Copy</span>
+                                `;
+                            }, 2000);
+                        });
+                    };
+                    
+                    block.parentElement.appendChild(copyBtn);
+                });
+            })
+            .catch(error => {
+                contentDiv.innerHTML = `
+                    <div class="text-center py-12">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="text-xl font-semibold mb-2 text-slate-300">Snippet Not Found</h3>
+                        <p class="text-slate-400 mb-6">The requested snippet could not be loaded.</p>
+                        <a href="../" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Back to Search
+                        </a>
+                    </div>
+                `;
+            });
+
+        // Copy all functionality
+        copyAllBtn.onclick = () => {
+            const allCodeBlocks = document.querySelectorAll('pre code');
+            const allCode = Array.from(allCodeBlocks).map(block => block.textContent).join('\n\n');
+            
+            navigator.clipboard.writeText(allCode).then(() => {
+                copyAllBtn.innerHTML = `
+                    <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span class="text-green-400">All Copied!</span>
+                `;
+                setTimeout(() => {
+                    copyAllBtn.innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Copy All</span>
+                    `;
+                }, 2000);
+            });
+        };
     </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  </body>
+</body>
 </html>
