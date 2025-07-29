@@ -67,6 +67,12 @@
                 </div>
                 <div class="flex items-center space-x-3">
                     <span id="category-badge" class="text-xs px-3 py-1 bg-slate-700 rounded-full text-slate-300"></span>
+                    <button id="edit-btn" class="hidden px-3 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        <span>Edit</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -123,6 +129,12 @@
                 </svg>
                 <span>New Search</span>
             </a>
+            <button id="share-btn" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                </svg>
+                <span>Share</span>
+            </button>
         </div>
     </main>
 
@@ -161,33 +173,71 @@
         const keywordsEl = document.getElementById('keywords');
         const categoryBadge = document.getElementById('category-badge');
         const copyAllBtn = document.getElementById('copy-all-btn');
+        const editBtn = document.getElementById('edit-btn');
+        const shareBtn = document.getElementById('share-btn');
 
         // Load snippet metadata
-        if (snippetId && snippetMeta[snippetId]) {
-            const meta = snippetMeta[snippetId];
-            titleEl.textContent = meta.title;
-            descriptionEl.textContent = meta.description;
-            categoryBadge.textContent = meta.category;
+        async function loadSnippetMeta(snippetId) {
+            // Check if it's a custom snippet
+            if (snippetId && snippetId.startsWith('custom_')) {
+                const customSnippets = JSON.parse(localStorage.getItem('devsnippets_custom') || '[]');
+                const customSnippet = customSnippets.find(s => s.id === snippetId);
+                if (customSnippet) {
+                    return { ...customSnippet, isCustom: true };
+                }
+            }
             
-            // Render keywords
-            keywordsEl.innerHTML = meta.keywords.map(keyword => 
-                `<span class="text-xs px-3 py-1 bg-slate-700/50 rounded-full text-slate-300">${keyword}</span>`
-            ).join('');
-            
-            // Update page title
-            document.title = `${meta.title} | DevSnippets`;
+            // Default snippets
+            return snippetMeta[snippetId] || null;
         }
 
-        // Load snippet content
-        fetch(`../snippets/${snippetId}.md`)
-            .then(res => {
-                if (!res.ok) throw new Error('Snippet not found');
-                return res.text();
-            })
-            .then(md => {
-                contentDiv.innerHTML = marked.parse(md);
+        // Load and display snippet metadata
+        loadSnippetMeta(snippetId).then(meta => {
+            if (meta) {
+                titleEl.textContent = meta.title;
+                descriptionEl.textContent = meta.description;
+                categoryBadge.textContent = meta.isCustom ? 'Custom' : meta.category;
+                categoryBadge.className = `text-xs px-3 py-1 ${meta.isCustom ? 'bg-purple-700' : 'bg-slate-700'} rounded-full text-slate-300`;
                 
-                // Apply syntax highlighting
+                // Show edit button for custom snippets
+                if (meta.isCustom) {
+                    editBtn.classList.remove('hidden');
+                    editBtn.onclick = () => {
+                        window.location.href = `../editor/?snippet=${snippetId}`;
+                    };
+                }
+                
+                // Render keywords
+                keywordsEl.innerHTML = meta.keywords.map(keyword => 
+                    `<span class="text-xs px-3 py-1 bg-slate-700/50 rounded-full text-slate-300">${keyword}</span>`
+                ).join('');
+                
+                // Update page title
+                document.title = `${meta.title} | DevSnippets`;
+            }
+        });
+
+        // Load snippet content
+        async function loadSnippetContent() {
+            try {
+                let content;
+                
+                // Check if it's a custom snippet
+                if (snippetId && snippetId.startsWith('custom_')) {
+                    content = localStorage.getItem(`devsnippets_content_${snippetId}`);
+                    if (!content) {
+                        throw new Error('Custom snippet content not found');
+                    }
+                } else {
+                    // Load from markdown files
+                    const response = await fetch(`../snippets/${snippetId}.md`);
+                    if (!response.ok) throw new Error('Snippet not found');
+                    content = await response.text();
+                }
+                
+                contentDiv.innerHTML = marked.parse(content);
+                
+                // Apply syntax highlighting and add copy buttons
                 document.querySelectorAll('pre code').forEach((block) => {
                     hljs.highlightElement(block);
                     
@@ -222,8 +272,8 @@
                     
                     block.parentElement.appendChild(copyBtn);
                 });
-            })
-            .catch(error => {
+                
+            } catch (error) {
                 contentDiv.innerHTML = `
                     <div class="text-center py-12">
                         <svg class="w-16 h-16 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,30 +289,61 @@
                         </a>
                     </div>
                 `;
-            });
+            }
+        }
 
         // Copy all functionality
         copyAllBtn.onclick = () => {
             const allCodeBlocks = document.querySelectorAll('pre code');
             const allCode = Array.from(allCodeBlocks).map(block => block.textContent).join('\n\n');
             
-            navigator.clipboard.writeText(allCode).then(() => {
+            if (allCode.trim() === '') {
+                // If no code blocks, copy all text content
+                const textContent = contentDiv.textContent || contentDiv.innerText;
+                navigator.clipboard.writeText(textContent);
+            } else {
+                navigator.clipboard.writeText(allCode);
+            }
+            
+            copyAllBtn.innerHTML = `
+                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-green-400">All Copied!</span>
+            `;
+            setTimeout(() => {
                 copyAllBtn.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Copy All</span>
+                `;
+            }, 2000);
+        };
+
+        // Share functionality
+        shareBtn.onclick = () => {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                shareBtn.innerHTML = `
                     <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <span class="text-green-400">All Copied!</span>
+                    <span class="text-green-400">Link Copied!</span>
                 `;
                 setTimeout(() => {
-                    copyAllBtn.innerHTML = `
+                    shareBtn.innerHTML = `
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
                         </svg>
-                        <span>Copy All</span>
+                        <span>Share</span>
                     `;
                 }, 2000);
             });
         };
+
+        // Load the content
+        loadSnippetContent();
     </script>
 </body>
 </html>
