@@ -1,0 +1,14 @@
+[
+  {
+    "id": "room",
+    "title": "Room Setup",
+    "description": "Basic setup for Room database in Android",
+    "keywords": ["room", "android", "database", "dao"]
+  },
+  {
+    "id": "jwt",
+    "title": "JWT Secret Generator",
+    "description": "Generate JWT secrets using Node.js",
+    "keywords": ["jwt", "node", "auth", "token"]
+  }
+]

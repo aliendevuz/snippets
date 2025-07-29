@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snippet</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+    />
+  </head>
+  <body>
+    <main>
+      <h1 id="title">Loading...</h1>
+      <div id="content"></div>
+    </main>
+
+    <script>
+      function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+      }
+
+      const snippetId = getQueryParam("snippet");
+      const contentDiv = document.getElementById("content");
+      const titleEl = document.getElementById("title");
+
+      fetch("index.json")
+        .then((res) => res.json())
+        .then((index) => {
+          const snippetMeta = index.find((s) => s.id === snippetId);
+          if (snippetMeta) {
+            titleEl.textContent = snippetMeta.title;
+          }
+        });
+
+      fetch(`../snippets/${snippetId}.md`)
+        .then((res) => res.text())
+        .then((md) => {
+          contentDiv.innerHTML = marked.parse(md);
+          document.querySelectorAll("pre code").forEach((block) => {
+            hljs.highlightElement(block); // <-- highlighting shu yerda
+          });
+
+          // Copy tugmasi
+          document.querySelectorAll("pre code").forEach((block) => {
+            const button = document.createElement("button");
+            button.textContent = "Copy";
+            button.style.marginTop = "5px";
+            button.onclick = () => {
+              navigator.clipboard.writeText(block.innerText);
+              button.textContent = "Copied!";
+              setTimeout(() => (button.textContent = "Copy"), 1000);
+            };
+            block.parentElement.appendChild(button);
+          });
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  </body>
+</html>
